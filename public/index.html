@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trung Tâm Đổi Thẻ</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#0f172a;
+  color:white;
+}
+
+/* NAVBAR */
+.nav{
+  background:#020617;
+  padding:15px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border-bottom:1px solid #1f2937;
+}
+.logo{
+  color:#22c55e;
+  font-weight:bold;
+}
+.user{
+  font-size:14px;
+}
+
+/* LAYOUT */
+.container{
+  display:flex;
+}
+
+/* SIDEBAR */
+.sidebar{
+  width:230px;
+  background:#020617;
+  height:100vh;
+  padding:15px;
+  border-right:1px solid #1f2937;
+}
+.menu-item{
+  padding:12px;
+  border-radius:8px;
+  margin-top:5px;
+  cursor:pointer;
+}
+.menu-item:hover{
+  background:#111827;
+}
+
+/* MAIN */
+.main{
+  flex:1;
+  padding:20px;
+}
+
+/* DASHBOARD */
+.cards{
+  display:flex;
+  gap:20px;
+  flex-wrap:wrap;
+}
+.card{
+  flex:1;
+  min-width:200px;
+  background:#111827;
+  padding:20px;
+  border-radius:10px;
+}
+.money{
+  font-size:22px;
+  color:#22c55e;
+}
+
+/* BOX */
+.box{
+  margin-top:20px;
+  background:#111827;
+  padding:20px;
+  border-radius:10px;
+}
+
+/* INPUT */
+input,select{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border:none;
+  border-radius:6px;
+  background:#020617;
+  color:white;
+}
+
+/* BUTTON */
+button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:6px;
+  background:#22c55e;
+  color:white;
+  font-weight:bold;
+}
+
+/* TABLE */
+table{
+  width:100%;
+  margin-top:10px;
+  border-collapse:collapse;
+}
+td,th{
+  padding:10px;
+  border-bottom:1px solid #1f2937;
+}
+</style>
+</head>
+
+<body>
+
+<div class="nav">
+  <div class="logo">💳 Trung Tâm Đổi Thẻ</div>
+  <div class="user" id="userShow">Chưa đăng nhập</div>
+</div>
+
+<div class="container">
+
+<div class="sidebar">
+  <div class="menu-item" onclick="tab('home')">🏠 Dashboard</div>
+  <div class="menu-item" onclick="tab('nap')">💳 Đổi thẻ</div>
+  <div class="menu-item" onclick="tab('his')">📊 Lịch sử</div>
+</div>
+
+<div class="main">
+
+<!-- DASHBOARD -->
+<div id="home">
+  <div class="cards">
+    <div class="card">
+      <h4>Số dư</h4>
+      <div class="money" id="money">0</div>
+    </div>
+    <div class="card">
+      <h4>Tài khoản</h4>
+      <div id="userText">---</div>
+    </div>
+  </div>
+
+  <div class="box">
+    <h3>🔐 Đăng nhập</h3>
+    <input id="user" placeholder="Tài khoản">
+    <input id="pass" type="password" placeholder="Mật khẩu">
+    <button onclick="login()">Đăng nhập</button>
+    <button onclick="reg()">Đăng ký</button>
+  </div>
+</div>
+
+<!-- NẠP -->
+<div id="nap" style="display:none">
+  <div class="box">
+    <h3>💳 Đổi thẻ cào</h3>
+
+    <select id="telco">
+      <option>VIETTEL</option>
+      <option>MOBIFONE</option>
+      <option>VINAPHONE</option>
+    </select>
+
+    <input id="code" placeholder="Mã thẻ">
+    <input id="serial" placeholder="Seri">
+
+    <button onclick="nap()">Gửi thẻ</button>
+    <p id="kq"></p>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div id="his" style="display:none">
+  <div class="box">
+    <h3>📊 Lịch sử giao dịch</h3>
+    <button onclick="load()">Tải</button>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Thời gian</th>
+          <th>Nhà mạng</th>
+          <th>Trạng thái</th>
+        </tr>
+      </thead>
+      <tbody id="table"></tbody>
+    </table>
+
+  </div>
+</div>
+
+</div>
+</div>
+
+<script>
+let currentUser="";
+
+function tab(t){
+  home.style.display="none";
+  nap.style.display="none";
+  his.style.display="none";
+  document.getElementById(t).style.display="block";
+}
+
+function reg(){
+fetch("/register",{method:"POST",headers:{'Content-Type':'application/json'},
+body:JSON.stringify({user:user.value,pass:pass.value})})
+.then(r=>r.json()).then(d=>alert(d.msg))
+}
+
+function login(){
+fetch("/login",{method:"POST",headers:{'Content-Type':'application/json'},
+body:JSON.stringify({user:user.value,pass:pass.value})})
+.then(r=>r.json()).then(d=>{
+if(d.ok){
+currentUser=user.value;
+money.innerText=d.money;
+userShow.innerText=currentUser;
+userText.innerText=currentUser;
+}else alert("Sai");
+})
+}
+
+function nap(){
+fetch("/napthe",{method:"POST",headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+user:currentUser,
+telco:telco.value,
+code:code.value,
+serial:serial.value
+})})
+.then(r=>r.json()).then(d=>kq.innerText=d.msg)
+}
+
+function load(){
+fetch("/history?user="+currentUser)
+.then(r=>r.json()).then(d=>{
+table.innerHTML="";
+d.forEach(i=>{
+table.innerHTML+=`
+<tr>
+<td>${i.time}</td>
+<td>${i.telco}</td>
+<td>${i.status}</td>
+</tr>`;
+});
+})
+}
+</script>
+
+</body>
+        </html>
